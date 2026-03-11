@@ -457,21 +457,26 @@ async function handleClock(){
   const action=isClockin?'clockIn':'clockOut';
   const btn=document.getElementById('clockBtn');
   btn.disabled=true;btn.textContent='Saving…';
+  const todayISO=new Date().toISOString().slice(0,10);
   try{
-    const d=await api({action,user:currentUser.username,userName:currentUser.fullName});
-    // Update todayRecord locally from the response — no second API call needed
+    // Use fetch directly so we can read error messages without throwing
+    const r=await fetch(SCRIPT_URL+'?'+new URLSearchParams({action,user:currentUser.username,userName:currentUser.fullName,clientDate:todayISO}));
+    const d=await r.json();
+    if(!d.ok){
+      showToast('❌ '+d.error,'error');
+      btn.disabled=false;updateClockUI();return;
+    }
     const now=d.time||new Date().toTimeString().slice(0,8);
     if(isClockin){
-      todayRecord={user:currentUser.username,userName:currentUser.fullName,date:'today',clockIn:now,clockOut:'',totalHours:''};
+      todayRecord={user:currentUser.username,userName:currentUser.fullName,date:todayISO,clockIn:now,clockOut:'',totalHours:''};
     }else{
       todayRecord={...todayRecord,clockOut:now,totalHours:d.total||'—'};
     }
     updateClockUI();
     showToast(isClockin?'✅ Clocked in at '+now.slice(0,5):'✅ Clocked out · '+(d.total||''),'success');
   }catch(e){
-    btn.disabled=false;
-    updateClockUI();
     showToast('❌ '+e.message,'error');
+    btn.disabled=false;updateClockUI();
   }
 }
 
