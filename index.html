@@ -327,7 +327,7 @@ tr:hover td{background:var(--surface2);}
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzz3fJL_HKm6SCglmoyk6f3vXWRidR2rffJGXD57_PV5gJHmtj4I2cS6jdV4XGIfLkw/exec';
-let currentUser=null,myLeaves=[],myAttendance=[],todayRecord=null,quota=7,calDate=new Date(),selectedDate=null,selectedType='leave';
+let currentUser=null,myLeaves=[],myAttendance=[],todayRecord=null,clockInRowNum=null,quota=7,calDate=new Date(),selectedDate=null,selectedType='leave';
 
 async function api(p){
   const r=await fetch(SCRIPT_URL+'?'+new URLSearchParams(p));
@@ -370,7 +370,7 @@ async function doLogin(){
   finally{hideLoading();btn.disabled=false;btn.textContent='Sign In →';}
 }
 function doLogout(){
-  currentUser=null;myLeaves=[];myAttendance=[];todayRecord=null;
+  currentUser=null;myLeaves=[];myAttendance=[];todayRecord=null;clockInRowNum=null;
   document.getElementById('appPage').style.display='none';
   document.getElementById('loginPage').style.display='flex';
   document.getElementById('passInput').value='';
@@ -458,18 +458,22 @@ async function handleClock(){
   const btn=document.getElementById('clockBtn');
   btn.disabled=true;btn.textContent='Saving…';
   const todayISO=new Date().toISOString().slice(0,10);
+  // Build params — include rowNum on clockOut so server finds the row directly
+  const params={action,user:currentUser.username,userName:currentUser.fullName,clientDate:todayISO};
+  if(!isClockin&&clockInRowNum)params.rowNum=clockInRowNum;
   try{
-    // Use fetch directly so we can read error messages without throwing
-    const r=await fetch(SCRIPT_URL+'?'+new URLSearchParams({action,user:currentUser.username,userName:currentUser.fullName,clientDate:todayISO}));
+    const r=await fetch(SCRIPT_URL+'?'+new URLSearchParams(params));
     const d=await r.json();
     if(!d.ok){
-      showToast('❌ '+d.error,'error');
+      showToast('❌ Server says: '+d.error,'error');
       btn.disabled=false;updateClockUI();return;
     }
     const now=d.time||new Date().toTimeString().slice(0,8);
     if(isClockin){
+      clockInRowNum=d.rowNum||null; // store row number for clockOut
       todayRecord={user:currentUser.username,userName:currentUser.fullName,date:todayISO,clockIn:now,clockOut:'',totalHours:''};
     }else{
+      clockInRowNum=null;
       todayRecord={...todayRecord,clockOut:now,totalHours:d.total||'—'};
     }
     updateClockUI();
