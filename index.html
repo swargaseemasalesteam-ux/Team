@@ -458,28 +458,43 @@ async function handleClock(){
   const btn=document.getElementById('clockBtn');
   btn.disabled=true;btn.textContent='Saving…';
   const todayISO=new Date().toISOString().slice(0,10);
-  // Build params — include rowNum on clockOut so server finds the row directly
-  const params={action,user:currentUser.username,userName:currentUser.fullName,clientDate:todayISO};
-  if(!isClockin&&clockInRowNum)params.rowNum=clockInRowNum;
+  const nowTime=new Date().toTimeString().slice(0,8); // local HH:mm:ss
+
   try{
+    const params={action,user:currentUser.username,userName:currentUser.fullName,clientDate:todayISO,clientTime:nowTime};
+    if(!isClockin&&clockInRowNum)params.rowNum=String(clockInRowNum);
     const r=await fetch(SCRIPT_URL+'?'+new URLSearchParams(params));
     const d=await r.json();
+
     if(!d.ok){
-      showToast('❌ Server says: '+d.error,'error');
+      // Show exact error AND what we sent
+      showToast('❌ '+d.error,'error');
+      console.error('Clock error:',d,'params:',params);
       btn.disabled=false;updateClockUI();return;
     }
-    const now=d.time||new Date().toTimeString().slice(0,8);
+
+    const now=d.time||nowTime;
     if(isClockin){
-      clockInRowNum=d.rowNum||null; // store row number for clockOut
-      todayRecord={user:currentUser.username,userName:currentUser.fullName,date:todayISO,clockIn:now,clockOut:'',totalHours:''};
+      clockInRowNum=d.rowNum||null;
+      todayRecord={user:currentUser.username,userName:currentUser.fullName,
+                   date:todayISO,clockIn:now,clockOut:'',totalHours:''};
+      showToast('✅ Clocked in at '+now.slice(0,5),'success');
     }else{
+      // Calculate hours client-side as backup if server didn't return total
+      let total=d.total||'';
+      if(!total&&todayRecord&&todayRecord.clockIn){
+        const [ih,im]=(todayRecord.clockIn||'0:0').split(':').map(Number);
+        const [oh,om]=now.split(':').map(Number);
+        const diff=(oh*60+om)-(ih*60+im);
+        if(diff>0)total=Math.floor(diff/60)+'h '+(diff%60)+'m';
+      }
       clockInRowNum=null;
-      todayRecord={...todayRecord,clockOut:now,totalHours:d.total||'—'};
+      todayRecord={...todayRecord,clockOut:now,totalHours:total||'—'};
+      showToast('✅ Clocked out · '+(total||now.slice(0,5)),'success');
     }
     updateClockUI();
-    showToast(isClockin?'✅ Clocked in at '+now.slice(0,5):'✅ Clocked out · '+(d.total||''),'success');
   }catch(e){
-    showToast('❌ '+e.message,'error');
+    showToast('❌ Network error: '+e.message,'error');
     btn.disabled=false;updateClockUI();
   }
 }
