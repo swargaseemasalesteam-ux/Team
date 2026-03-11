@@ -6,152 +6,173 @@
 <title>TeamFlow — Member Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#fdf5ec;--surface:#ffffff;--surface2:#fdf0e4;--border:#e8d5c0;--maroon:#6b1a1a;--maroon2:#8b2525;--navy:#1e3a6e;--sold:#c94040;--sold-bg:#fdf0f0;--avail:#2e7d52;--avail-bg:#edf7f2;--amber:#c47f17;--amber-bg:#fef8ec;--text:#2c1a0e;--muted:#8a7060;--gold:#d4a843;--radius:12px;}
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh;}
+:root{--bg:#fdf5ec;--surface:#fff;--surface2:#fdf0e4;--border:#e8d5c0;--maroon:#6b1a1a;--maroon2:#8b2525;--navy:#1e3a6e;--sold:#c94040;--sold-bg:#fdf0f0;--avail:#2e7d52;--avail-bg:#edf7f2;--amber:#c47f17;--amber-bg:#fef8ec;--text:#2c1a0e;--muted:#8a7060;--gold:#d4a843;--radius:12px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh;}
+#loadingOverlay{position:fixed;inset:0;background:rgba(253,245,236,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(3px);}
+.spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--maroon);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--muted);font-size:14px;font-weight:600;}
+#loginPage{min-height:100vh;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,#5a1515 0%,#7a2020 50%,#a83232 100%);}
+.login-box{background:#fff;border-radius:20px;padding:48px 44px;width:420px;max-width:95vw;box-shadow:0 40px 100px rgba(0,0,0,.35);animation:fadeUp .5s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+.login-logo{font-family:'Playfair Display',serif;font-size:30px;color:var(--maroon);margin-bottom:3px;display:flex;align-items:center;gap:8px;}
+.logo-dot{width:9px;height:9px;border-radius:50%;background:var(--gold);}
+.login-sub{color:var(--muted);font-size:13px;margin-bottom:28px;font-weight:600;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.field input,.field select{width:100%;padding:12px 16px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:'Nunito',sans-serif;outline:none;transition:.2s;}
+.field input:focus,.field select:focus{border-color:var(--maroon);}
+.btn-login{width:100%;padding:14px;background:var(--maroon);border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;transition:.2s;font-family:'Nunito',sans-serif;}
+.btn-login:hover{background:var(--maroon2);transform:translateY(-1px);}
+.btn-login:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;transform:none;}
+.login-link{text-align:center;margin-top:18px;font-size:13px;color:var(--muted);}
+.login-link a{color:var(--navy);text-decoration:none;font-weight:700;}
+.error-msg{background:#fef2f2;border:1.5px solid #fca5a5;color:var(--sold);padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;font-weight:600;}
+#appPage{display:none;flex-direction:column;min-height:100vh;}
+header{background:linear-gradient(90deg,var(--maroon) 0%,var(--maroon2) 100%);padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.25);}
+.logo{font-family:'Playfair Display',serif;font-size:22px;color:#fff;}
+.gs-badge{display:inline-flex;align-items:center;background:rgba(46,125,82,.25);border:1px solid rgba(82,214,138,.3);color:#6ee7b7;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:10px;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#3a1a00;}
+.logout-btn{padding:7px 16px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-size:13px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:600;transition:.2s;}
+.logout-btn:hover{background:rgba(255,255,255,.25);}
+.main{display:flex;flex:1;}
+nav{width:220px;background:var(--surface);border-right:1.5px solid var(--border);padding:22px 12px;flex-shrink:0;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;color:var(--muted);transition:.15s;margin-bottom:4px;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:rgba(107,26,26,.08);color:var(--maroon);}
+.content{flex:1;padding:28px;overflow-y:auto;}
+.page{display:none;animation:fadeUp .3s ease;}
+.page.active{display:block;}
+.page-title{font-family:'Playfair Display',serif;font-size:26px;margin-bottom:4px;color:var(--maroon);}
+.page-sub{color:var(--muted);font-size:14px;margin-bottom:22px;font-weight:500;}
 
-  #loadingOverlay{position:fixed;inset:0;background:rgba(253,245,236,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(3px);}
-  .spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--maroon);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px;}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .loading-text{color:var(--muted);font-size:14px;font-weight:600;}
+/* CLOCK WIDGET */
+.clock-widget{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:24px 28px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;gap:24px;box-shadow:0 4px 16px rgba(0,0,0,.07);}
+.clock-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.clock-times{display:flex;gap:32px;align-items:center;}
+.clock-time-item{text-align:center;}
+.clock-time-val{font-family:'Playfair Display',serif;font-size:30px;line-height:1;}
+.clock-time-val.in-color{color:var(--avail);}
+.clock-time-val.out-color{color:var(--sold);}
+.clock-time-val.hours-color{color:var(--navy);font-size:22px;}
+.clock-time-val.empty{color:#ddd;}
+.clock-time-sub{font-size:10px;font-weight:700;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.08em;}
+.clock-arrow{font-size:24px;color:var(--border);}
+.clock-right{text-align:center;flex-shrink:0;}
+.clock-btn{padding:14px 32px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:.2s;font-family:'Nunito',sans-serif;border:none;min-width:160px;}
+.clock-btn.state-in{background:var(--avail);color:#fff;box-shadow:0 4px 16px rgba(46,125,82,.3);}
+.clock-btn.state-in:hover{background:#246642;transform:translateY(-1px);}
+.clock-btn.state-out{background:var(--sold);color:#fff;box-shadow:0 4px 16px rgba(201,64,64,.3);}
+.clock-btn.state-out:hover{background:#a83030;transform:translateY(-1px);}
+.clock-btn.state-done{background:var(--surface2);color:var(--muted);border:1.5px solid var(--border);cursor:default;}
+.clock-status{font-size:12px;font-weight:600;margin-top:8px;}
+.clock-status.s-in{color:var(--avail);}
+.clock-status.s-out{color:var(--sold);}
+.clock-status.s-none{color:var(--muted);}
 
-  #loginPage{min-height:100vh;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,#5a1515 0%,#7a2020 50%,#a83232 100%);position:relative;overflow:hidden;}
-  #loginPage::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 60% at 80% 20%,rgba(212,168,67,.18) 0%,transparent 60%);}
-  .login-box{background:#fff;border-radius:20px;padding:48px 44px;width:420px;max-width:95vw;box-shadow:0 40px 100px rgba(0,0,0,.35);animation:fadeUp .5s ease both;position:relative;z-index:1;}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
-  .login-logo{font-family:'Playfair Display',serif;font-size:30px;color:var(--maroon);margin-bottom:3px;display:flex;align-items:center;gap:8px;}
-  .logo-dot{width:9px;height:9px;border-radius:50%;background:var(--gold);flex-shrink:0;}
-  .login-sub{color:var(--muted);font-size:13px;margin-bottom:30px;font-weight:600;}
-  .gs-pill{display:inline-flex;align-items:center;gap:5px;background:var(--avail-bg);border:1px solid rgba(46,125,82,.25);color:var(--avail);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:22px;}
-  .field{margin-bottom:16px;}
-  .field label{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
-  .field input,.field select{width:100%;padding:12px 16px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:'Nunito',sans-serif;outline:none;transition:.2s;}
-  .field input:focus,.field select:focus{border-color:var(--maroon);box-shadow:0 0 0 3px rgba(107,26,26,.1);}
-  .btn{width:100%;padding:14px;background:var(--maroon);border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;transition:.2s;font-family:'Nunito',sans-serif;}
-  .btn:hover{background:var(--maroon2);transform:translateY(-1px);box-shadow:0 6px 20px rgba(107,26,26,.3);}
-  .btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;transform:none;box-shadow:none;}
-  .login-link{text-align:center;margin-top:18px;font-size:13px;color:var(--muted);}
-  .login-link a{color:var(--navy);text-decoration:none;font-weight:700;}
-  .error-msg{background:#fef2f2;border:1.5px solid #fca5a5;color:var(--sold);padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;font-weight:600;}
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:14px;margin-bottom:22px;}
+.stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px 18px;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:4px 4px 0 0;background:var(--maroon);}
+.stat-card.green::after{background:var(--avail);}
+.stat-card.amber::after{background:var(--amber);}
+.stat-card.red::after{background:var(--sold);}
+.stat-num{font-family:'Playfair Display',serif;font-size:36px;margin:6px 0 3px;}
+.stat-label{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+.stat-sub{font-size:12px;color:var(--muted);margin-top:3px;}
+.notice{background:var(--avail-bg);border:1.5px solid rgba(46,125,82,.2);border-radius:10px;padding:13px 17px;font-size:13px;color:var(--muted);margin-bottom:18px;font-weight:500;}
+.notice strong{color:var(--avail);}
+.amber-notice{background:var(--amber-bg);border:1.5px solid rgba(196,127,23,.2);border-radius:10px;padding:13px 17px;font-size:13px;color:var(--muted);margin-bottom:18px;font-weight:500;}
+.amber-notice strong{color:var(--amber);}
+.section-title{font-size:15px;font-weight:700;margin-bottom:12px;color:var(--text);}
 
-  #appPage{display:none;flex-direction:column;min-height:100vh;}
-  header{background:linear-gradient(90deg,var(--maroon) 0%,var(--maroon2) 100%);padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.25);}
-  .logo{font-family:'Playfair Display',serif;font-size:22px;color:#fff;}
-  .logo-sub{color:rgba(255,255,255,.6);font-size:12px;font-weight:600;margin-left:10px;}
-  .gs-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(46,125,82,.25);border:1px solid rgba(82,214,138,.3);color:#6ee7b7;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:10px;}
-  .header-right{display:flex;align-items:center;gap:12px;}
-  .avatar{width:36px;height:36px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#3a1a00;flex-shrink:0;}
-  .logout-btn{padding:7px 16px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-size:13px;cursor:pointer;transition:.2s;font-family:'Nunito',sans-serif;font-weight:600;}
-  .logout-btn:hover{background:rgba(255,255,255,.25);}
-  .main{display:flex;flex:1;}
-  nav{width:220px;background:var(--surface);border-right:1.5px solid var(--border);padding:22px 12px;flex-shrink:0;}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;color:var(--muted);transition:.15s;margin-bottom:4px;}
-  .nav-item:hover{background:var(--surface2);color:var(--text);}
-  .nav-item.active{background:rgba(107,26,26,.08);color:var(--maroon);}
-  .content{flex:1;padding:28px;overflow-y:auto;}
-  .page{display:none;animation:fadeUp .3s ease;}
-  .page.active{display:block;}
-  .page-title{font-family:'Playfair Display',serif;font-size:26px;margin-bottom:4px;color:var(--maroon);}
-  .page-sub{color:var(--muted);font-size:14px;margin-bottom:22px;font-weight:500;}
+/* CALENDAR */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.cal-nav{background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:8px 16px;cursor:pointer;color:var(--maroon);font-size:14px;font-weight:700;transition:.2s;font-family:'Nunito',sans-serif;}
+.cal-nav:hover{border-color:var(--maroon);}
+.cal-month{font-family:'Playfair Display',serif;font-size:22px;color:var(--maroon);}
+.cal-grid{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.cal-days-header{display:grid;grid-template-columns:repeat(7,1fr);background:var(--maroon);}
+.cal-day-name{padding:11px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.85);}
+.cal-cells{display:grid;grid-template-columns:repeat(7,1fr);}
+.cal-cell{min-height:78px;padding:8px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;transition:.15s;}
+.cal-cell:hover:not(.other-month):not(.past){background:rgba(107,26,26,.05);}
+.cal-cell.other-month{opacity:.35;cursor:default;background:#faf5f0;}
+.cal-cell.past{cursor:default;background:#faf8f5;}
+.cal-cell.today{background:rgba(30,58,110,.06);}
+.cell-num{font-size:13px;font-weight:700;margin-bottom:4px;}
+.cal-cell.today .cell-num{color:var(--navy);}
+.cell-sunday .cell-num{color:var(--sold);}
+.cell-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;display:inline-block;margin-top:2px;}
+.tag-leave{background:var(--sold-bg);color:var(--sold);}
+.tag-weekoff{background:var(--avail-bg);color:var(--avail);}
+.tag-pending{background:var(--amber-bg);color:var(--amber);}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:600;}
+.legend-dot{width:10px;height:10px;border-radius:3px;}
 
-  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin-bottom:22px;}
-  .stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px 18px;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);}
-  .stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:4px 4px 0 0;background:var(--maroon);}
-  .stat-card.green::after{background:var(--avail);}
-  .stat-card.amber::after{background:var(--amber);}
-  .stat-card.red::after{background:var(--sold);}
-  .stat-num{font-family:'Playfair Display',serif;font-size:36px;margin:6px 0 3px;}
-  .stat-label{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
-  .stat-sub{font-size:12px;color:var(--muted);margin-top:3px;}
+/* TABLE */
+.table-wrap{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+table{width:100%;border-collapse:collapse;}
+thead{background:var(--maroon);}
+th{padding:13px 18px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.85);}
+td{padding:13px 18px;border-top:1px solid var(--border);font-size:14px;}
+tr:hover td{background:var(--surface2);}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-pending{background:var(--amber-bg);color:var(--amber);}
+.badge-approved{background:var(--avail-bg);color:var(--avail);}
+.badge-denied{background:var(--sold-bg);color:var(--sold);}
+.cancel-btn{padding:5px 12px;background:transparent;border:1.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;cursor:pointer;transition:.2s;font-weight:600;}
+.cancel-btn:hover{border-color:var(--sold);color:var(--sold);}
+.empty-state{text-align:center;padding:55px 20px;color:var(--muted);}
+.empty-icon{font-size:38px;margin-bottom:10px;}
+.att-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+.att-in{background:var(--avail-bg);color:var(--avail);}
+.att-out{background:var(--sold-bg);color:var(--sold);}
 
-  .notice{background:var(--avail-bg);border:1.5px solid rgba(46,125,82,.2);border-radius:10px;padding:13px 17px;font-size:13px;color:var(--muted);margin-bottom:18px;font-weight:500;}
-  .notice strong{color:var(--avail);}
-  .weekoff-info{background:var(--amber-bg);border:1.5px solid rgba(196,127,23,.2);border-radius:10px;padding:13px 17px;font-size:13px;color:var(--muted);margin-bottom:18px;font-weight:500;}
-  .weekoff-info strong{color:var(--amber);}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(44,26,14,.5);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:18px;padding:34px;width:440px;max-width:95vw;animation:fadeUp .25s ease;box-shadow:0 24px 60px rgba(0,0,0,.2);}
+.modal h3{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:4px;color:var(--maroon);}
+.modal-date{color:var(--navy);font-size:13px;font-weight:700;margin-bottom:20px;}
+.type-select{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+.type-opt{padding:16px;border:2px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;transition:.2s;font-size:13px;font-weight:700;color:var(--muted);background:var(--surface2);}
+.type-opt.selected{border-color:var(--maroon);background:rgba(107,26,26,.06);color:var(--maroon);}
+.type-opt .opt-icon{font-size:24px;margin-bottom:6px;display:block;}
+.modal-field{margin-bottom:16px;}
+.modal-field label{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.modal-field input{width:100%;padding:11px 14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;color:var(--text);font-size:14px;font-family:'Nunito',sans-serif;outline:none;transition:.2s;}
+.modal-field input:focus{border-color:var(--maroon);}
+.modal-actions{display:flex;gap:12px;margin-top:20px;}
+.btn-secondary{flex:1;padding:12px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;color:var(--muted);font-size:14px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:600;transition:.2s;}
+.btn-secondary:hover{border-color:var(--sold);color:var(--sold);}
+.btn-primary{flex:2;padding:12px;background:var(--maroon);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:.2s;}
+.btn-primary:hover{background:var(--maroon2);}
+.btn-primary:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;}
+.warn-box{background:var(--amber-bg);border:1.5px solid rgba(196,127,23,.2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--amber);font-weight:600;margin-bottom:12px;display:none;}
 
-  .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-  .cal-nav{background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:8px 16px;cursor:pointer;color:var(--maroon);font-size:14px;font-weight:700;transition:.2s;font-family:'Nunito',sans-serif;}
-  .cal-nav:hover{border-color:var(--maroon);background:rgba(107,26,26,.05);}
-  .cal-month{font-family:'Playfair Display',serif;font-size:22px;color:var(--maroon);}
-  .cal-grid{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07);}
-  .cal-days-header{display:grid;grid-template-columns:repeat(7,1fr);background:var(--maroon);}
-  .cal-day-name{padding:11px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.85);}
-  .cal-cells{display:grid;grid-template-columns:repeat(7,1fr);}
-  .cal-cell{min-height:78px;padding:8px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;transition:.15s;}
-  .cal-cell:hover:not(.other-month):not(.past){background:rgba(107,26,26,.05);}
-  .cal-cell.other-month{opacity:.35;cursor:default;background:#faf5f0;}
-  .cal-cell.past{cursor:default;background:#faf8f5;}
-  .cal-cell.today{background:rgba(30,58,110,.06);}
-  .cell-num{font-size:13px;font-weight:700;margin-bottom:4px;}
-  .cal-cell.today .cell-num{color:var(--navy);}
-  .cell-sunday .cell-num{color:var(--sold);}
-  .cell-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;display:inline-block;margin-top:2px;}
-  .tag-leave{background:var(--sold-bg);color:var(--sold);border:1px solid rgba(201,64,64,.2);}
-  .tag-weekoff{background:var(--avail-bg);color:var(--avail);border:1px solid rgba(46,125,82,.2);}
-  .tag-pending{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(196,127,23,.2);}
-  .tag-approved{background:rgba(30,58,110,.07);color:var(--navy);border:1px solid rgba(30,58,110,.2);}
-
-  .modal-overlay{position:fixed;inset:0;background:rgba(44,26,14,.5);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px);}
-  .modal-overlay.open{display:flex;animation:fadeIn .2s ease;}
-  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-  .modal{background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:34px;width:440px;max-width:95vw;animation:fadeUp .25s ease;box-shadow:0 24px 60px rgba(0,0,0,.2);}
-  .modal h3{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:4px;color:var(--maroon);}
-  .modal-date{color:var(--navy);font-size:13px;font-weight:700;margin-bottom:20px;}
-  .type-select{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
-  .type-opt{padding:16px;border:2px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;transition:.2s;font-size:13px;font-weight:700;color:var(--muted);background:var(--surface2);}
-  .type-opt:hover{border-color:var(--maroon);}
-  .type-opt.selected{border-color:var(--maroon);background:rgba(107,26,26,.06);color:var(--maroon);}
-  .type-opt .opt-icon{font-size:24px;margin-bottom:6px;display:block;}
-  .modal-actions{display:flex;gap:12px;margin-top:20px;}
-  .btn-secondary{flex:1;padding:12px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;color:var(--muted);font-size:14px;cursor:pointer;transition:.2s;font-family:'Nunito',sans-serif;font-weight:600;}
-  .btn-secondary:hover{border-color:var(--sold);color:var(--sold);}
-  .btn-primary{flex:2;padding:12px;background:var(--maroon);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;font-family:'Nunito',sans-serif;}
-  .btn-primary:hover{background:var(--maroon2);}
-  .btn-primary:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;}
-
-  .table-wrap{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);}
-  table{width:100%;border-collapse:collapse;}
-  thead{background:var(--maroon);}
-  th{padding:13px 18px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.85);}
-  td{padding:13px 18px;border-top:1px solid var(--border);font-size:14px;}
-  tr:hover td{background:var(--surface2);}
-  .badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
-  .badge-pending{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(196,127,23,.2);}
-  .badge-approved{background:var(--avail-bg);color:var(--avail);border:1px solid rgba(46,125,82,.2);}
-  .badge-denied{background:var(--sold-bg);color:var(--sold);border:1px solid rgba(201,64,64,.2);}
-  .cancel-btn{padding:5px 12px;background:transparent;border:1.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;cursor:pointer;transition:.2s;font-weight:600;}
-  .cancel-btn:hover{border-color:var(--sold);color:var(--sold);}
-  .empty-state{text-align:center;padding:55px 20px;color:var(--muted);}
-  .empty-icon{font-size:38px;margin-bottom:10px;}
-  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;}
-  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:600;}
-  .legend-dot{width:10px;height:10px;border-radius:3px;}
-  .section-title{font-size:15px;font-weight:700;margin-bottom:12px;color:var(--text);}
-  #toast{position:fixed;bottom:24px;right:24px;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:13px 20px;font-size:14px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.12);transform:translateY(20px);opacity:0;transition:.3s;z-index:600;max-width:320px;}
-  #toast.show{transform:none;opacity:1;}
-  #toast.success{border-color:var(--avail);color:var(--avail);background:var(--avail-bg);}
-  #toast.error{border-color:var(--sold);color:var(--sold);background:var(--sold-bg);}
+#toast{position:fixed;bottom:24px;right:24px;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:13px 20px;font-size:14px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.12);transform:translateY(20px);opacity:0;transition:.3s;z-index:600;max-width:320px;}
+#toast.show{transform:none;opacity:1;}
+#toast.success{border-color:var(--avail);color:var(--avail);background:var(--avail-bg);}
+#toast.error{border-color:var(--sold);color:var(--sold);background:var(--sold-bg);}
 </style>
 </head>
 <body>
-
-<!-- LOADING -->
-<div id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="loading-text" id="loadingText">Connecting to Google Sheets…</div>
-</div>
+<div id="loadingOverlay"><div class="spinner"></div><div class="loading-text" id="loadingText">Connecting to Google Sheets…</div></div>
 
 <!-- LOGIN -->
 <div id="loginPage">
   <div class="login-box">
     <div class="login-logo">TeamFlow <span class="logo-dot"></span></div>
     <div class="login-sub">Member Portal</div>
-    <div class="gs-pill">📊 Connected to Google Sheets</div>
-    <div class="error-msg" id="loginError">Invalid username or password.</div>
+    <div class="error-msg" id="loginError"></div>
     <div class="field">
-      <label>Username</label>
+      <label>Select Your Name</label>
       <select id="usernameInput">
-        <option value="">Select your name…</option>
+        <option value="">Choose…</option>
         <option value="alice">alice — Alice Johnson</option>
         <option value="bob">bob — Bob Martinez</option>
         <option value="carol">carol — Carol Chen</option>
@@ -165,21 +186,17 @@
       </select>
     </div>
     <div class="field"><label>Password</label><input type="password" id="passInput" placeholder="password123"/></div>
-    <button class="btn" id="loginBtn" onclick="doLogin()">Sign In →</button>
+    <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In →</button>
     <div class="login-link">Team Lead? <a href="admin-portal.html" target="_blank">Admin Panel →</a></div>
   </div>
 </div>
 
 <!-- APP -->
-<div id="appPage" style="display:none;flex-direction:column;min-height:100vh;">
+<div id="appPage">
   <header>
-    <div style="display:flex;align-items:center;">
-      <span class="logo">TeamFlow</span>
-      <span class="logo-sub">Member Portal</span>
-      <span class="gs-badge">📊 Live Sheets</span>
-    </div>
+    <div style="display:flex;align-items:center;"><span class="logo">TeamFlow</span><span class="gs-badge">📊 Live Sheets</span></div>
     <div class="header-right">
-      <div id="headerName" style="font-size:13px;color:rgba(255,255,255,.7);font-weight:600;"></div>
+      <span style="font-size:13px;color:rgba(255,255,255,.7);font-weight:600;" id="headerName"></span>
       <div class="avatar" id="headerAvatar">A</div>
       <button class="logout-btn" onclick="doLogout()">Sign Out</button>
     </div>
@@ -188,33 +205,62 @@
     <nav>
       <div class="nav-item active" onclick="showPage('dashboard',this)">📊 Dashboard</div>
       <div class="nav-item" onclick="showPage('calendar',this)">📅 Calendar</div>
-      <div class="nav-item" onclick="showPage('history',this)">📋 My Leaves</div>
+      <div class="nav-item" onclick="showPage('leaves',this)">📋 My Leaves</div>
+      <div class="nav-item" onclick="showPage('attendance',this)">🕐 Attendance Log</div>
     </nav>
     <div class="content">
 
       <!-- DASHBOARD -->
       <div class="page active" id="page-dashboard">
         <div class="page-title">Welcome, <span id="firstName"></span> 👋</div>
-        <div class="page-sub">Your leave overview — live from Google Sheets</div>
+        <div class="page-sub">Your daily overview — live from Google Sheets</div>
+
+        <!-- CLOCK WIDGET -->
+        <div class="clock-widget">
+          <div>
+            <div class="clock-label">Today's Attendance</div>
+            <div class="clock-times">
+              <div class="clock-time-item">
+                <div class="clock-time-val in-color" id="clockInDisplay">--:--</div>
+                <div class="clock-time-sub">Clock In</div>
+              </div>
+              <div class="clock-arrow">→</div>
+              <div class="clock-time-item">
+                <div class="clock-time-val out-color" id="clockOutDisplay">--:--</div>
+                <div class="clock-time-sub">Clock Out</div>
+              </div>
+              <div class="clock-time-item" id="totalHoursWrap" style="display:none;">
+                <div class="clock-time-val hours-color" id="totalHoursVal">—</div>
+                <div class="clock-time-sub">Total Hours</div>
+              </div>
+            </div>
+          </div>
+          <div class="clock-right">
+            <button class="clock-btn state-in" id="clockBtn" onclick="handleClock()">⏵ Clock In</button>
+            <div class="clock-status s-none" id="clockStatus">Not clocked in today</div>
+          </div>
+        </div>
+
+        <!-- STATS -->
         <div class="stats">
-          <div class="stat-card"><div class="stat-label">Week-offs Left</div><div class="stat-num" id="stat-remaining" style="color:var(--maroon);">—</div><div class="stat-sub">of 7 total</div></div>
+          <div class="stat-card"><div class="stat-label">Week-offs Left</div><div class="stat-num" id="stat-remaining" style="color:var(--maroon);">—</div><div class="stat-sub" id="stat-quota-sub">of — total</div></div>
           <div class="stat-card amber"><div class="stat-label">Pending</div><div class="stat-num" id="stat-pending" style="color:var(--amber);">—</div><div class="stat-sub">awaiting approval</div></div>
-          <div class="stat-card green"><div class="stat-label">Approved</div><div class="stat-num" id="stat-approved" style="color:var(--avail);">—</div><div class="stat-sub">confirmed days off</div></div>
+          <div class="stat-card green"><div class="stat-label">Approved</div><div class="stat-num" id="stat-approved" style="color:var(--avail);">—</div><div class="stat-sub">confirmed</div></div>
           <div class="stat-card red"><div class="stat-label">Denied</div><div class="stat-num" id="stat-denied" style="color:var(--sold);">—</div><div class="stat-sub">not approved</div></div>
         </div>
-        <div class="notice"><strong>📋 Policy:</strong> Each member gets <strong>7 days</strong> of week-off per year. All leaves require team lead approval.</div>
+        <div class="notice"><strong>📋 Policy:</strong> Week-off quota is set monthly by the team lead. All leaves require approval.</div>
         <div class="section-title">Recent Requests</div>
-        <div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Status</th><th>Applied On</th></tr></thead><tbody id="recentTable"><tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🌿</div>No requests yet.</div></td></tr></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Status</th><th>Applied On</th></tr></thead><tbody id="recentTable"></tbody></table></div>
       </div>
 
       <!-- CALENDAR -->
       <div class="page" id="page-calendar">
         <div class="page-title">Leave Calendar</div>
         <div class="page-sub">Click any future date to apply for leave or week-off</div>
-        <div class="weekoff-info">🌿 <strong>Week-off Remaining:</strong> <span id="calWeekoffLeft">—</span> days — Sundays are non-working days.</div>
+        <div class="amber-notice">🌿 <strong>Week-offs Remaining: <span id="calWeekoffLeft">—</span></strong> days (quota set by admin)</div>
         <div class="legend">
           <div class="legend-item"><div class="legend-dot" style="background:var(--sold);"></div>Leave</div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--avail);"></div>Week-off (approved)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--avail);"></div>Week-off</div>
           <div class="legend-item"><div class="legend-dot" style="background:var(--amber);"></div>Pending</div>
           <div class="legend-item"><div class="legend-dot" style="background:var(--navy);"></div>Today</div>
         </div>
@@ -232,266 +278,289 @@
         </div>
       </div>
 
-      <!-- HISTORY -->
-      <div class="page" id="page-history">
+      <!-- LEAVES -->
+      <div class="page" id="page-leaves">
         <div class="page-title">My Leave Requests</div>
-        <div class="page-sub">All applications — live from Google Sheets</div>
-        <div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Status</th><th>Applied On</th><th>Action</th></tr></thead><tbody id="historyTable"><tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🌿</div>No leave requests yet.</div></td></tr></tbody></table></div>
+        <div class="page-sub">View all your requests — status is managed by the team lead</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Type</th><th>Reason</th><th>Status</th><th>Applied On</th><th>Action</th></tr></thead>
+            <tbody id="leavesTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ATTENDANCE -->
+      <div class="page" id="page-attendance">
+        <div class="page-title">Attendance Log</div>
+        <div class="page-sub">Your clock-in & clock-out history — saved to Google Sheets</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Clock In</th><th>Clock Out</th><th>Total Hours</th></tr></thead>
+            <tbody id="attendanceTable"></tbody>
+          </table>
+        </div>
       </div>
 
     </div>
   </div>
 </div>
 
-<!-- MODAL -->
+<!-- APPLY MODAL -->
 <div class="modal-overlay" id="applyModal">
   <div class="modal">
     <h3>Apply for Time Off</h3>
     <div class="modal-date" id="modalDate"></div>
-    <div class="field"><label>Select Type</label></div>
     <div class="type-select">
       <div class="type-opt selected" id="opt-leave" onclick="selectType('leave')"><span class="opt-icon">🏖️</span>Leave</div>
       <div class="type-opt" id="opt-weekoff" onclick="selectType('weekoff')"><span class="opt-icon">🌿</span>Week-off</div>
     </div>
-    <div class="field"><label>Reason (optional)</label><input type="text" id="reasonInput" placeholder="e.g. Medical, family event…"/></div>
-    <div id="weekoffWarn" style="display:none;" class="weekoff-info">⚠️ Using a week-off day. <strong id="weekoffLeftModal">7</strong> days remaining after this.</div>
+    <div class="warn-box" id="weekoffWarn">⚠️ Using a week-off. <strong id="weekoffLeftModal">—</strong> days remaining after.</div>
+    <div class="modal-field"><label>Reason (optional)</label><input type="text" id="reasonInput" placeholder="e.g. Medical, family event…"/></div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal()">Cancel</button>
-      <button class="btn-primary" id="submitBtn" onclick="submitLeave()">Submit to Google Sheets →</button>
+      <button class="btn-primary" id="submitBtn" onclick="submitLeave()">Submit Request →</button>
     </div>
   </div>
 </div>
-
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════
-//  HARDCODED GOOGLE APPS SCRIPT URL
-// ══════════════════════════════════════════
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzW8GQDxl2_GxRgiSdGyCtqx-GCgmO6YyN5nwpcJh5JYwD33T3XSt_CJxFSh4KXNKtf/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzz3fJL_HKm6SCglmoyk6f3vXWRidR2rffJGXD57_PV5gJHmtj4I2cS6jdV4XGIfLkw/exec';
+let currentUser=null,myLeaves=[],myAttendance=[],todayRecord=null,quota=7,calDate=new Date(),selectedDate=null,selectedType='leave';
 
-let currentUser = null, myLeaves = [], calDate = new Date(), selectedDate = null, selectedType = 'leave';
-const WEEKOFF_QUOTA = 7;
-
-// ── API ──────────────────────────────────
-async function api(params) {
-  const url = SCRIPT_URL + '?' + new URLSearchParams(params).toString();
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Network error: ' + res.status);
-  const data = await res.json();
-  if (!data.ok) throw new Error(data.error || 'Server error');
-  return data;
+async function api(p){
+  const r=await fetch(SCRIPT_URL+'?'+new URLSearchParams(p));
+  if(!r.ok)throw new Error('Network error');
+  const d=await r.json();
+  if(!d.ok)throw new Error(d.error||'Server error');
+  return d;
 }
+function showLoading(t='Loading…'){document.getElementById('loadingText').textContent=t;document.getElementById('loadingOverlay').style.display='flex';}
+function hideLoading(){document.getElementById('loadingOverlay').style.display='none';}
 
-function showLoading(text = 'Loading…') {
-  document.getElementById('loadingText').textContent = text;
-  document.getElementById('loadingOverlay').style.display = 'flex';
-}
-function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
-
-// ── INIT ─────────────────────────────────
-window.addEventListener('DOMContentLoaded', async () => {
-  // Init sheets silently on first load
-  try { await api({ action: 'initSheet' }); } catch(e) { console.log('initSheet:', e.message); }
+window.addEventListener('DOMContentLoaded',async()=>{
+  try{await api({action:'initSheet'});}catch(e){}
   hideLoading();
-  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('loginPage').style.display='flex';
 });
 
-// ── AUTH ─────────────────────────────────
-async function doLogin() {
-  const username = document.getElementById('usernameInput').value.trim();
-  const password = document.getElementById('passInput').value;
-  const err = document.getElementById('loginError');
-  const btn = document.getElementById('loginBtn');
-  if (!username) { err.textContent = 'Please select your name.'; err.style.display = 'block'; return; }
-  if (!password) { err.textContent = 'Please enter your password.'; err.style.display = 'block'; return; }
-  btn.disabled = true; btn.textContent = 'Signing in…';
-  showLoading('Checking credentials in Google Sheets…');
-  try {
-    const data = await api({ action: 'login', username, password });
-    currentUser = data.user;
-    err.style.display = 'none';
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('appPage').style.display = 'flex';
-    const parts = currentUser.fullName.split(' ');
-    document.getElementById('firstName').textContent = parts[0];
-    document.getElementById('headerName').textContent = currentUser.fullName;
-    document.getElementById('headerAvatar').textContent = parts.map(p => p[0]).join('').slice(0, 2).toUpperCase();
-    await loadMyLeaves();
-    renderStats(); renderHistory('recentTable', 4);
-    calDate = new Date(); renderCalendar();
-  } catch(e) {
-    err.textContent = e.message; err.style.display = 'block';
-  } finally { hideLoading(); btn.disabled = false; btn.textContent = 'Sign In →'; }
+async function doLogin(){
+  const username=document.getElementById('usernameInput').value.trim();
+  const password=document.getElementById('passInput').value;
+  const err=document.getElementById('loginError'),btn=document.getElementById('loginBtn');
+  if(!username){err.textContent='Please select your name.';err.style.display='block';return;}
+  if(!password){err.textContent='Please enter your password.';err.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Signing in…';
+  showLoading('Checking credentials…');
+  try{
+    const d=await api({action:'login',username,password});
+    currentUser=d.user;
+    err.style.display='none';
+    document.getElementById('loginPage').style.display='none';
+    document.getElementById('appPage').style.display='flex';
+    const parts=currentUser.fullName.split(' ');
+    document.getElementById('firstName').textContent=parts[0];
+    document.getElementById('headerName').textContent=currentUser.fullName;
+    document.getElementById('headerAvatar').textContent=parts.map(p=>p[0]).join('').slice(0,2).toUpperCase();
+    await loadAll();
+    renderDashboard();
+    calDate=new Date();renderCalendar();
+  }catch(e){err.textContent=e.message;err.style.display='block';}
+  finally{hideLoading();btn.disabled=false;btn.textContent='Sign In →';}
+}
+function doLogout(){
+  currentUser=null;myLeaves=[];myAttendance=[];todayRecord=null;
+  document.getElementById('appPage').style.display='none';
+  document.getElementById('loginPage').style.display='flex';
+  document.getElementById('passInput').value='';
+  document.getElementById('loginBtn').disabled=false;document.getElementById('loginBtn').textContent='Sign In →';
 }
 
-function doLogout() {
-  currentUser = null; myLeaves = [];
-  document.getElementById('appPage').style.display = 'none';
-  document.getElementById('loginPage').style.display = 'flex';
-  document.getElementById('passInput').value = '';
-  document.getElementById('loginBtn').disabled = false;
-  document.getElementById('loginBtn').textContent = 'Sign In →';
+async function loadAll(){
+  const [lv,att,q,td]=await Promise.all([
+    api({action:'getMyLeaves',user:currentUser.username}),
+    api({action:'getAttendance',user:currentUser.username}),
+    api({action:'getQuota'}),
+    api({action:'getTodayAttendance',user:currentUser.username})
+  ]);
+  myLeaves=lv.leaves||[];
+  myAttendance=att.records||[];
+  quota=q.quota||7;
+  todayRecord=td.record||null;
 }
 
-// ── DATA ─────────────────────────────────
-async function loadMyLeaves() {
-  showLoading('Fetching your leaves from Google Sheets…');
-  try {
-    const data = await api({ action: 'getMyLeaves', user: currentUser.username });
-    myLeaves = data.leaves || [];
-  } finally { hideLoading(); }
+async function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  showLoading('Loading…');
+  try{
+    await loadAll();
+    if(id==='dashboard')renderDashboard();
+    if(id==='calendar')renderCalendar();
+    if(id==='leaves')renderLeaves();
+    if(id==='attendance')renderAttendance();
+  }catch(e){showToast('❌ '+e.message,'error');}
+  finally{hideLoading();}
 }
 
-// ── NAV ──────────────────────────────────
-async function showPage(id, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  if (el) el.classList.add('active');
-  await loadMyLeaves();
-  if (id === 'dashboard') { renderStats(); renderHistory('recentTable', 4); }
-  if (id === 'calendar')  { renderStats(); renderCalendar(); }
-  if (id === 'history')   { renderHistory('historyTable'); }
+function renderDashboard(){
+  updateClockUI();
+  const used=myLeaves.filter(l=>l.type==='weekoff'&&l.status!=='denied').length;
+  document.getElementById('stat-remaining').textContent=Math.max(0,quota-used);
+  document.getElementById('stat-quota-sub').textContent='of '+quota+' total';
+  document.getElementById('stat-pending').textContent=myLeaves.filter(l=>l.status==='pending').length;
+  document.getElementById('stat-approved').textContent=myLeaves.filter(l=>l.status==='approved').length;
+  document.getElementById('stat-denied').textContent=myLeaves.filter(l=>l.status==='denied').length;
+  document.getElementById('calWeekoffLeft').textContent=Math.max(0,quota-used);
+  const recent=[...myLeaves].reverse().slice(0,4);
+  const tbody=document.getElementById('recentTable');
+  tbody.innerHTML=recent.length?recent.map(l=>`<tr>
+    <td><strong>${l.date}</strong></td>
+    <td>${l.type==='weekoff'?'🌿 Week-off':'🏖️ Leave'}</td>
+    <td><span class="badge badge-${l.status}">${dot(l.status)} ${cap(l.status)}</span></td>
+    <td style="color:var(--muted);font-size:13px;">${l.appliedOn}</td>
+  </tr>`).join(''):`<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🌿</div>No requests yet.</div></td></tr>`;
 }
 
-// ── RENDER STATS ─────────────────────────
-function renderStats() {
-  const used = myLeaves.filter(l => l.type === 'weekoff' && l.status !== 'denied').length;
-  document.getElementById('stat-remaining').textContent = Math.max(0, WEEKOFF_QUOTA - used);
-  document.getElementById('stat-pending').textContent   = myLeaves.filter(l => l.status === 'pending').length;
-  document.getElementById('stat-approved').textContent  = myLeaves.filter(l => l.status === 'approved').length;
-  document.getElementById('stat-denied').textContent    = myLeaves.filter(l => l.status === 'denied').length;
-  document.getElementById('calWeekoffLeft').textContent = Math.max(0, WEEKOFF_QUOTA - used);
-}
-
-// ── RENDER TABLE ─────────────────────────
-function renderHistory(tableId, limit) {
-  const rows = limit ? [...myLeaves].reverse().slice(0, limit) : [...myLeaves].reverse();
-  const tbody = document.getElementById(tableId);
-  const cols = tableId === 'historyTable' ? 5 : 4;
-  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="${cols}"><div class="empty-state"><div class="empty-icon">🌿</div>No requests yet — use the Calendar tab to apply.</div></td></tr>`; return; }
-  tbody.innerHTML = rows.map(l => {
-    const bc  = l.status === 'pending' ? 'badge-pending' : l.status === 'approved' ? 'badge-approved' : 'badge-denied';
-    const dot = l.status === 'pending' ? '🟡' : l.status === 'approved' ? '🟢' : '🔴';
-    const cancel = (l.status === 'pending' && tableId === 'historyTable') ? `<button class="cancel-btn" onclick="cancelLeave('${l.id}')">Cancel</button>` : '—';
-    const act = tableId === 'historyTable' ? `<td>${cancel}</td>` : '';
-    return `<tr>
-      <td><strong>${l.date}</strong></td>
-      <td>${l.type === 'weekoff' ? '🌿 Week-off' : '🏖️ Leave'}</td>
-      <td><span class="badge ${bc}">${dot} ${l.status.charAt(0).toUpperCase() + l.status.slice(1)}</span></td>
-      <td style="color:var(--muted);font-size:13px;">${l.appliedOn}</td>
-      ${act}
-    </tr>`;
-  }).join('');
-}
-
-// ── CALENDAR ─────────────────────────────
-function changeMonth(d) { calDate = new Date(calDate.getFullYear(), calDate.getMonth() + d, 1); renderCalendar(); }
-
-function renderCalendar() {
-  const lmap = {};
-  myLeaves.forEach(l => lmap[l.date] = l);
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const y = calDate.getFullYear(), m = calDate.getMonth();
-  document.getElementById('calMonth').textContent = new Date(y, m, 1).toLocaleString('default', { month: 'long', year: 'numeric' });
-  const first = new Date(y, m, 1).getDay(), days = new Date(y, m + 1, 0).getDate(), prev = new Date(y, m, 0).getDate();
-  let html = '';
-  for (let i = 0; i < first; i++) html += `<div class="cal-cell other-month"><div class="cell-num">${prev - first + i + 1}</div></div>`;
-  for (let d = 1; d <= days; d++) {
-    const date = new Date(y, m, d), ds = toDateStr(date);
-    const isPast = date < today, isToday = date.getTime() === today.getTime(), isSun = date.getDay() === 0;
-    const leave = lmap[ds];
-    let cls = 'cal-cell';
-    if (isPast) cls += ' past'; if (isToday) cls += ' today'; if (isSun) cls += ' cell-sunday';
-    let tag = '';
-    if (leave) {
-      const tc = leave.type === 'weekoff'
-        ? (leave.status === 'approved' ? 'tag-weekoff' : 'tag-pending')
-        : (leave.status === 'approved' ? 'tag-approved' : leave.status === 'denied' ? 'tag-leave' : 'tag-pending');
-      tag = `<div class="cell-tag ${tc}">${leave.type === 'weekoff' ? 'Week-off' : 'Leave'}</div>`;
-    }
-    const click = !isPast && !isSun && !leave;
-    html += `<div class="${cls}"${click ? ` onclick="openModal('${ds}')"` : ''}><div class="cell-num">${d}</div>${tag}</div>`;
+function updateClockUI(){
+  const btn=document.getElementById('clockBtn');
+  const inEl=document.getElementById('clockInDisplay');
+  const outEl=document.getElementById('clockOutDisplay');
+  const stat=document.getElementById('clockStatus');
+  const hw=document.getElementById('totalHoursWrap');
+  if(!todayRecord||!todayRecord.clockIn){
+    inEl.textContent='--:--';outEl.textContent='--:--';
+    btn.className='clock-btn state-in';btn.textContent='⏵ Clock In';
+    stat.className='clock-status s-none';stat.textContent='Not clocked in today';
+    hw.style.display='none';
+  }else if(!todayRecord.clockOut){
+    inEl.textContent=todayRecord.clockIn.slice(0,5);outEl.textContent='--:--';
+    btn.className='clock-btn state-out';btn.textContent='⏹ Clock Out';
+    stat.className='clock-status s-in';stat.textContent='✅ Currently clocked in';
+    hw.style.display='none';
+  }else{
+    inEl.textContent=todayRecord.clockIn.slice(0,5);outEl.textContent=todayRecord.clockOut.slice(0,5);
+    btn.className='clock-btn state-done';btn.textContent='✔ Day Complete';
+    stat.className='clock-status s-out';stat.textContent='Clocked out — see you tomorrow!';
+    hw.style.display='block';
+    document.getElementById('totalHoursVal').textContent=todayRecord.totalHours||'—';
   }
-  const total = first + days, rem = Math.ceil(total / 7) * 7 - total;
-  for (let i = 1; i <= rem; i++) html += `<div class="cal-cell other-month"><div class="cell-num">${i}</div></div>`;
-  document.getElementById('calCells').innerHTML = html;
 }
 
-// ── MODAL ────────────────────────────────
-function openModal(ds) {
-  selectedDate = ds; selectedType = 'leave';
-  document.getElementById('modalDate').textContent = '📅 ' + ds;
-  document.getElementById('reasonInput').value = '';
+async function handleClock(){
+  if(todayRecord&&todayRecord.clockOut)return;
+  const action=(!todayRecord||!todayRecord.clockIn)?'clockIn':'clockOut';
+  showLoading(action==='clockIn'?'Clocking you in…':'Clocking you out…');
+  try{
+    const d=await api({action,user:currentUser.username,userName:currentUser.fullName});
+    const td=await api({action:'getTodayAttendance',user:currentUser.username});
+    todayRecord=td.record||null;
+    updateClockUI();
+    showToast(action==='clockIn'?'✅ Clocked in at '+d.time.slice(0,5):'✅ Clocked out · '+d.total,'success');
+  }catch(e){showToast('❌ '+e.message,'error');}
+  finally{hideLoading();}
+}
+
+function renderLeaves(){
+  const tbody=document.getElementById('leavesTable');
+  if(!myLeaves.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🌿</div>No requests yet — use the Calendar to apply.</div></td></tr>`;return;}
+  tbody.innerHTML=[...myLeaves].reverse().map(l=>`<tr>
+    <td><strong>${l.date}</strong></td>
+    <td>${l.type==='weekoff'?'🌿 Week-off':'🏖️ Leave'}</td>
+    <td style="color:var(--muted);font-size:13px;">${l.reason||'—'}</td>
+    <td><span class="badge badge-${l.status}">${dot(l.status)} ${cap(l.status)}</span></td>
+    <td style="color:var(--muted);font-size:13px;">${l.appliedOn}</td>
+    <td>${l.status==='pending'?`<button class="cancel-btn" onclick="cancelLeave('${l.id}')">Cancel</button>`:'—'}</td>
+  </tr>`).join('');
+}
+
+function renderAttendance(){
+  const tbody=document.getElementById('attendanceTable');
+  if(!myAttendance.length){tbody.innerHTML=`<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🕐</div>No attendance records yet. Click Clock In to start.</div></td></tr>`;return;}
+  tbody.innerHTML=[...myAttendance].reverse().map(r=>`<tr>
+    <td><strong>${r.date}</strong></td>
+    <td>${r.clockIn?`<span class="att-chip att-in">⏵ ${r.clockIn.slice(0,5)}</span>`:'—'}</td>
+    <td>${r.clockOut?`<span class="att-chip att-out">⏹ ${r.clockOut.slice(0,5)}</span>`:'<span style="color:var(--amber);font-weight:600;font-size:13px;">Still in</span>'}</td>
+    <td><strong>${r.totalHours||'—'}</strong></td>
+  </tr>`).join('');
+}
+
+function changeMonth(d){calDate=new Date(calDate.getFullYear(),calDate.getMonth()+d,1);renderCalendar();}
+function renderCalendar(){
+  const lmap={};myLeaves.forEach(l=>lmap[l.date]=l);
+  const today=new Date();today.setHours(0,0,0,0);
+  const y=calDate.getFullYear(),m=calDate.getMonth();
+  document.getElementById('calMonth').textContent=new Date(y,m,1).toLocaleString('default',{month:'long',year:'numeric'});
+  const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),prev=new Date(y,m,0).getDate();
+  let html='';
+  for(let i=0;i<first;i++)html+=`<div class="cal-cell other-month"><div class="cell-num">${prev-first+i+1}</div></div>`;
+  for(let d=1;d<=days;d++){
+    const date=new Date(y,m,d),ds=dstr(date);
+    const isPast=date<today,isToday=date.getTime()===today.getTime(),isSun=date.getDay()===0;
+    const leave=lmap[ds];
+    let cls='cal-cell';if(isPast)cls+=' past';if(isToday)cls+=' today';if(isSun)cls+=' cell-sunday';
+    let tag='';
+    if(leave){const tc=leave.type==='weekoff'?(leave.status==='approved'?'tag-weekoff':'tag-pending'):(leave.status==='denied'?'tag-leave':'tag-pending');tag=`<div class="cell-tag ${tc}">${leave.type==='weekoff'?'Week-off':'Leave'}</div>`;}
+    const click=!isPast&&!isSun&&!leave;
+    html+=`<div class="${cls}"${click?` onclick="openModal('${ds}')"`:''}><div class="cell-num">${d}</div>${tag}</div>`;
+  }
+  const rem=Math.ceil((first+days)/7)*7-(first+days);
+  for(let i=1;i<=rem;i++)html+=`<div class="cal-cell other-month"><div class="cell-num">${i}</div></div>`;
+  document.getElementById('calCells').innerHTML=html;
+}
+
+function openModal(ds){
+  selectedDate=ds;selectedType='leave';
+  document.getElementById('modalDate').textContent='📅 '+ds;
+  document.getElementById('reasonInput').value='';
   document.getElementById('opt-leave').classList.add('selected');
   document.getElementById('opt-weekoff').classList.remove('selected');
-  document.getElementById('weekoffWarn').style.display = 'none';
-  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('weekoffWarn').style.display='none';
+  document.getElementById('submitBtn').disabled=false;
   document.getElementById('applyModal').classList.add('open');
 }
-function closeModal() { document.getElementById('applyModal').classList.remove('open'); }
-
-function selectType(t) {
-  selectedType = t;
-  document.getElementById('opt-leave').classList.toggle('selected', t === 'leave');
-  document.getElementById('opt-weekoff').classList.toggle('selected', t === 'weekoff');
-  if (t === 'weekoff') {
-    const used = myLeaves.filter(l => l.type === 'weekoff' && l.status !== 'denied').length;
-    document.getElementById('weekoffLeftModal').textContent = Math.max(0, WEEKOFF_QUOTA - used - 1);
-    document.getElementById('weekoffWarn').style.display = 'block';
-    document.getElementById('submitBtn').disabled = used >= WEEKOFF_QUOTA;
-  } else {
-    document.getElementById('weekoffWarn').style.display = 'none';
-    document.getElementById('submitBtn').disabled = false;
-  }
+function closeModal(){document.getElementById('applyModal').classList.remove('open');}
+function selectType(t){
+  selectedType=t;
+  document.getElementById('opt-leave').classList.toggle('selected',t==='leave');
+  document.getElementById('opt-weekoff').classList.toggle('selected',t==='weekoff');
+  if(t==='weekoff'){
+    const used=myLeaves.filter(l=>l.type==='weekoff'&&l.status!=='denied').length;
+    document.getElementById('weekoffLeftModal').textContent=Math.max(0,quota-used-1);
+    document.getElementById('weekoffWarn').style.display='block';
+    document.getElementById('submitBtn').disabled=used>=quota;
+  }else{document.getElementById('weekoffWarn').style.display='none';document.getElementById('submitBtn').disabled=false;}
+}
+async function submitLeave(){
+  const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='Saving…';
+  showLoading('Saving to Google Sheets…');
+  try{
+    await api({action:'applyLeave',user:currentUser.username,userName:currentUser.fullName,date:selectedDate,type:selectedType,reason:document.getElementById('reasonInput').value||''});
+    closeModal();await loadAll();renderCalendar();
+    showToast('✅ Request saved!','success');
+  }catch(e){showToast('❌ '+e.message,'error');}
+  finally{hideLoading();btn.disabled=false;btn.textContent='Submit Request →';}
+}
+async function cancelLeave(id){
+  if(!confirm('Cancel this leave request?'))return;
+  showLoading('Removing…');
+  try{
+    await api({action:'cancelLeave',user:currentUser.username,id});
+    await loadAll();renderLeaves();renderCalendar();
+    showToast('Request cancelled.','error');
+  }catch(e){showToast('❌ '+e.message,'error');}
+  finally{hideLoading();}
 }
 
-async function submitLeave() {
-  const btn = document.getElementById('submitBtn');
-  btn.disabled = true; btn.textContent = 'Saving to Google Sheets…';
-  showLoading('Saving your request to Google Sheets…');
-  try {
-    await api({
-      action: 'applyLeave',
-      user: currentUser.username,
-      userName: currentUser.fullName,
-      date: selectedDate,
-      type: selectedType,
-      reason: document.getElementById('reasonInput').value || ''
-    });
-    closeModal();
-    await loadMyLeaves();
-    renderStats(); renderCalendar();
-    showToast('✅ Request saved to Google Sheets!', 'success');
-  } catch(e) {
-    showToast('❌ ' + e.message, 'error');
-  } finally {
-    hideLoading(); btn.disabled = false; btn.textContent = 'Submit to Google Sheets →';
-  }
-}
-
-async function cancelLeave(id) {
-  if (!confirm('Cancel this leave request?')) return;
-  showLoading('Removing from Google Sheets…');
-  try {
-    await api({ action: 'cancelLeave', user: currentUser.username, id });
-    await loadMyLeaves();
-    renderHistory('historyTable'); renderStats(); renderCalendar();
-    showToast('Request cancelled.', 'error');
-  } catch(e) { showToast('❌ ' + e.message, 'error'); }
-  finally { hideLoading(); }
-}
-
-// ── UTILS ────────────────────────────────
-function toDateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function dstr(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function dot(s){return s==='pending'?'🟡':s==='approved'?'🟢':'🔴';}
 let toastT;
-function showToast(msg, type) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'show ' + (type || '');
-  clearTimeout(toastT); toastT = setTimeout(() => { t.className = ''; }, 3500);
-}
-document.getElementById('passInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+function showToast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type||'');clearTimeout(toastT);toastT=setTimeout(()=>{t.className='';},3500);}
+document.getElementById('passInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 </script>
 </body>
 </html>
