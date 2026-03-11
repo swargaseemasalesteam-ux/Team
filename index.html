@@ -378,11 +378,12 @@ function doLogout(){
 }
 
 async function loadAll(){
+  const safe=async(p,fb)=>{try{return await api(p);}catch(e){return fb;}};
   const [lv,att,q,td]=await Promise.all([
-    api({action:'getMyLeaves',user:currentUser.username}),
-    api({action:'getAttendance',user:currentUser.username}),
-    api({action:'getQuota'}),
-    api({action:'getTodayAttendance',user:currentUser.username})
+    safe({action:"getMyLeaves",user:currentUser.username},{leaves:[]}),
+    safe({action:"getAttendance",user:currentUser.username},{records:[]}),
+    safe({action:"getQuota"},{quota:7}),
+    safe({action:"getTodayAttendance",user:currentUser.username},{record:null})
   ]);
   myLeaves=lv.leaves||[];
   myAttendance=att.records||[];
@@ -452,16 +453,26 @@ function updateClockUI(){
 
 async function handleClock(){
   if(todayRecord&&todayRecord.clockOut)return;
-  const action=(!todayRecord||!todayRecord.clockIn)?'clockIn':'clockOut';
-  showLoading(action==='clockIn'?'Clocking you in…':'Clocking you out…');
+  const isClockin=(!todayRecord||!todayRecord.clockIn);
+  const action=isClockin?'clockIn':'clockOut';
+  const btn=document.getElementById('clockBtn');
+  btn.disabled=true;btn.textContent='Saving…';
   try{
     const d=await api({action,user:currentUser.username,userName:currentUser.fullName});
-    const td=await api({action:'getTodayAttendance',user:currentUser.username});
-    todayRecord=td.record||null;
+    // Update todayRecord locally from the response — no second API call needed
+    const now=d.time||new Date().toTimeString().slice(0,8);
+    if(isClockin){
+      todayRecord={user:currentUser.username,userName:currentUser.fullName,date:'today',clockIn:now,clockOut:'',totalHours:''};
+    }else{
+      todayRecord={...todayRecord,clockOut:now,totalHours:d.total||'—'};
+    }
     updateClockUI();
-    showToast(action==='clockIn'?'✅ Clocked in at '+d.time.slice(0,5):'✅ Clocked out · '+d.total,'success');
-  }catch(e){showToast('❌ '+e.message,'error');}
-  finally{hideLoading();}
+    showToast(isClockin?'✅ Clocked in at '+now.slice(0,5):'✅ Clocked out · '+(d.total||''),'success');
+  }catch(e){
+    btn.disabled=false;
+    updateClockUI();
+    showToast('❌ '+e.message,'error');
+  }
 }
 
 function renderLeaves(){
