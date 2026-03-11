@@ -241,16 +241,6 @@ tr:hover td{background:var(--surface2);}
           </div>
         </div>
 
-        <!-- DEBUG TOOL -->
-        <div id="debugBar" style="background:#1e1e1e;border-radius:10px;padding:14px 18px;margin-bottom:16px;font-family:monospace;font-size:12px;color:#00ff88;display:none;">
-          <div style="color:#888;margin-bottom:6px;">▶ API Response:</div>
-          <div id="debugOutput" style="white-space:pre-wrap;word-break:break-all;"></div>
-        </div>
-        <div style="margin-bottom:16px;display:flex;gap:8px;">
-          <button onclick="testClockOut()" style="padding:8px 16px;background:#1e3a6e;border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">🔍 Debug: Test Clock Out</button>
-          <button onclick="document.getElementById('debugBar').style.display='none'" style="padding:8px 12px;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Hide</button>
-        </div>
-
         <!-- STATS -->
         <div class="stats">
           <div class="stat-card"><div class="stat-label">Week-offs Left</div><div class="stat-num" id="stat-remaining" style="color:var(--maroon);">—</div><div class="stat-sub" id="stat-quota-sub">of — total</div></div>
@@ -340,19 +330,31 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzz3fJL_HKm6SCglmoyk
 let currentUser=null,myLeaves=[],myAttendance=[],todayRecord=null,clockInRowNum=null,quota=7,calDate=new Date(),selectedDate=null,selectedType='leave';
 
 async function api(p){
-  const r=await fetch(SCRIPT_URL+'?'+new URLSearchParams(p));
-  if(!r.ok)throw new Error('Network error');
-  const d=await r.json();
-  if(!d.ok)throw new Error(d.error||'Server error');
-  return d;
+  // 15 second timeout so we never get stuck loading forever
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),15000);
+  try{
+    const r=await fetch(SCRIPT_URL+'?'+new URLSearchParams(p),{signal:controller.signal});
+    clearTimeout(timer);
+    if(!r.ok)throw new Error('Network error '+r.status);
+    const d=await r.json();
+    if(!d.ok)throw new Error(d.error||'Server error');
+    return d;
+  }catch(e){
+    clearTimeout(timer);
+    if(e.name==='AbortError')throw new Error('Request timed out. Check your Apps Script deployment.');
+    throw e;
+  }
 }
 function showLoading(t='Loading…'){document.getElementById('loadingText').textContent=t;document.getElementById('loadingOverlay').style.display='flex';}
 function hideLoading(){document.getElementById('loadingOverlay').style.display='none';}
 
-window.addEventListener('DOMContentLoaded',async()=>{
-  try{await api({action:'initSheet'});}catch(e){}
+window.addEventListener('DOMContentLoaded',()=>{
+  // Don't wait for server - show login immediately
   hideLoading();
   document.getElementById('loginPage').style.display='flex';
+  // Init sheet silently in background without blocking
+  fetch(SCRIPT_URL+'?action=initSheet').catch(()=>{});
 });
 
 async function doLogin(){
@@ -600,39 +602,6 @@ async function cancelLeave(id){
   finally{hideLoading();}
 }
 
-async function testClockOut(){
-  const bar=document.getElementById('debugBar');
-  const out=document.getElementById('debugOutput');
-  bar.style.display='block';
-  out.textContent='Calling clockOut...';
-  const todayISO=new Date().toISOString().slice(0,10);
-  const nowTime=new Date().toTimeString().slice(0,8);
-  const params={action:'clockOut',user:currentUser.username,userName:currentUser.fullName,clientDate:todayISO,clientTime:nowTime};
-  if(clockInRowNum)params.rowNum=String(clockInRowNum);
-  out.textContent='Sending: '+JSON.stringify(params,null,2)+'
-
-Waiting...';
-  try{
-    const r=await fetch(SCRIPT_URL+'?'+new URLSearchParams(params));
-    const text=await r.text();
-    out.textContent='Sent: '+JSON.stringify(params,null,2)+'
-
-Raw response:
-'+text;
-    try{
-      const d=JSON.parse(text);
-      if(d.ok){
-        const now=d.time||nowTime;
-        clockInRowNum=null;
-        todayRecord={...todayRecord,clockOut:now,totalHours:d.total||'—'};
-        updateClockUI();
-        showToast('✅ Clocked out · '+(d.total||now.slice(0,5)),'success');
-      }
-    }catch(e){}
-  }catch(e){
-    out.textContent='FETCH ERROR: '+e.message;
-  }
-}
 function dstr(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 function dot(s){return s==='pending'?'🟡':s==='approved'?'🟢':'🔴';}
