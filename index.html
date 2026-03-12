@@ -236,8 +236,13 @@ tr:hover td{background:var(--surface2);}
             </div>
           </div>
           <div class="clock-right">
-            <button class="clock-btn state-in" id="clockBtn" onclick="handleClock()">⏵ Clock In</button>
-            <div class="clock-status s-none" id="clockStatus">Not clocked in today</div>
+            <div style="display:flex;flex-direction:column;gap:10px;align-items:center;">
+              <div style="display:flex;gap:10px;">
+                <button id="btnClockIn" onclick="doClock('in')" style="padding:12px 22px;border-radius:10px;background:var(--avail);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:0 4px 12px rgba(46,125,82,.3);transition:.2s;">⏵ Clock In</button>
+                <button id="btnClockOut" onclick="doClock('out')" style="padding:12px 22px;border-radius:10px;background:var(--sold);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:0 4px 12px rgba(201,64,64,.3);transition:.2s;opacity:0.4;pointer-events:none;">⏹ Clock Out</button>
+              </div>
+              <div class="clock-status s-none" id="clockStatus">Not clocked in today</div>
+            </div>
           </div>
         </div>
 
@@ -431,83 +436,81 @@ function renderDashboard(){
   const recent=[...myLeaves].reverse().slice(0,4);
   const tbody=document.getElementById('recentTable');
   tbody.innerHTML=recent.length?recent.map(l=>`<tr>
-    <td><strong>${l.date}</strong></td>
+    <td><strong>${cleanDate(l.date)}</strong></td>
     <td>${l.type==='weekoff'?'🌿 Week-off':'🏖️ Leave'}</td>
     <td><span class="badge badge-${l.status}">${dot(l.status)} ${cap(l.status)}</span></td>
-    <td style="color:var(--muted);font-size:13px;">${l.appliedOn}</td>
+    <td style="color:var(--muted);font-size:13px;">${cleanDate(l.appliedOn)}</td>
   </tr>`).join(''):`<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🌿</div>No requests yet.</div></td></tr>`;
 }
 
 function updateClockUI(){
-  const btn=document.getElementById('clockBtn');
-  const inEl=document.getElementById('clockInDisplay');
-  const outEl=document.getElementById('clockOutDisplay');
-  const stat=document.getElementById('clockStatus');
-  const hw=document.getElementById('totalHoursWrap');
-  if(!todayRecord||!todayRecord.clockIn){
-    inEl.textContent='--:--';outEl.textContent='--:--';
-    btn.className='clock-btn state-in';btn.textContent='⏵ Clock In';
-    stat.className='clock-status s-none';stat.textContent='Not clocked in today';
+  const inEl = document.getElementById('clockInDisplay');
+  const outEl = document.getElementById('clockOutDisplay');
+  const stat = document.getElementById('clockStatus');
+  const hw = document.getElementById('totalHoursWrap');
+  const btnIn = document.getElementById('btnClockIn');
+  const btnOut = document.getElementById('btnClockOut');
+
+  if(!todayRecord || !todayRecord.clockIn){
+    // Not clocked in yet
+    inEl.textContent='--:--'; outEl.textContent='--:--';
+    stat.textContent='Not clocked in today'; stat.className='clock-status s-none';
     hw.style.display='none';
-  }else if(!todayRecord.clockOut){
-    inEl.textContent=todayRecord.clockIn.slice(0,5);outEl.textContent='--:--';
-    btn.className='clock-btn state-out';btn.textContent='⏹ Clock Out';
-    stat.className='clock-status s-in';stat.textContent='✅ Currently clocked in';
+    btnIn.style.opacity='1'; btnIn.style.pointerEvents='auto';
+    btnOut.style.opacity='0.4'; btnOut.style.pointerEvents='none';
+  } else if(!todayRecord.clockOut){
+    // Clocked in, not out yet
+    inEl.textContent=todayRecord.clockIn.slice(0,5); outEl.textContent='--:--';
+    stat.textContent='Currently clocked in'; stat.className='clock-status s-in';
     hw.style.display='none';
-  }else{
-    inEl.textContent=todayRecord.clockIn.slice(0,5);outEl.textContent=todayRecord.clockOut.slice(0,5);
-    btn.className='clock-btn state-done';btn.textContent='✔ Day Complete';
-    stat.className='clock-status s-out';stat.textContent='Clocked out — see you tomorrow!';
+    btnIn.style.opacity='0.4'; btnIn.style.pointerEvents='none';
+    btnOut.style.opacity='1'; btnOut.style.pointerEvents='auto';
+  } else {
+    // Both clocked in and out
+    inEl.textContent=todayRecord.clockIn.slice(0,5);
+    outEl.textContent=todayRecord.clockOut.slice(0,5);
+    stat.textContent='Day complete! See you tomorrow.'; stat.className='clock-status s-out';
     hw.style.display='block';
-    document.getElementById('totalHoursVal').textContent=todayRecord.totalHours||'—';
+    document.getElementById('totalHoursVal').textContent=todayRecord.totalHours||'--';
+    btnIn.style.opacity='0.4'; btnIn.style.pointerEvents='none';
+    btnOut.style.opacity='0.4'; btnOut.style.pointerEvents='none';
   }
 }
 
-async function handleClock(){
-  if(todayRecord&&todayRecord.clockOut)return;
-  const isClockin=(!todayRecord||!todayRecord.clockIn);
-  const action=isClockin?'clockIn':'clockOut';
-  const btn=document.getElementById('clockBtn');
-  btn.disabled=true;btn.textContent='Saving…';
-  const todayISO=new Date().toISOString().slice(0,10);
-  const nowTime=new Date().toTimeString().slice(0,8); // local HH:mm:ss
+async function doClock(type){
+  const nowTime = new Date().toTimeString().slice(0,5); // HH:mm
+  const todayISO = new Date().toISOString().slice(0,10);
 
-  try{
-    const params={action,user:currentUser.username,userName:currentUser.fullName,clientDate:todayISO,clientTime:nowTime};
-    if(!isClockin&&clockInRowNum)params.rowNum=String(clockInRowNum);
-    const r=await fetch(SCRIPT_URL+'?'+new URLSearchParams(params));
-    const d=await r.json();
-
-    if(!d.ok){
-      // Show exact error AND what we sent
-      showToast('❌ '+d.error,'error');
-      console.error('Clock error:',d,'params:',params);
-      btn.disabled=false;updateClockUI();return;
-    }
-
-    const now=d.time||nowTime;
-    if(isClockin){
-      clockInRowNum=d.rowNum||null;
-      todayRecord={user:currentUser.username,userName:currentUser.fullName,
-                   date:todayISO,clockIn:now,clockOut:'',totalHours:''};
-      showToast('✅ Clocked in at '+now.slice(0,5),'success');
-    }else{
-      // Calculate hours client-side as backup if server didn't return total
-      let total=d.total||'';
-      if(!total&&todayRecord&&todayRecord.clockIn){
-        const [ih,im]=(todayRecord.clockIn||'0:0').split(':').map(Number);
-        const [oh,om]=now.split(':').map(Number);
-        const diff=(oh*60+om)-(ih*60+im);
-        if(diff>0)total=Math.floor(diff/60)+'h '+(diff%60)+'m';
-      }
-      clockInRowNum=null;
-      todayRecord={...todayRecord,clockOut:now,totalHours:total||'—'};
-      showToast('✅ Clocked out · '+(total||now.slice(0,5)),'success');
-    }
+  if(type === 'in'){
+    if(todayRecord && todayRecord.clockIn){ showToast('Already clocked in today!','error'); return; }
+    // Update UI immediately - don't wait for server
+    todayRecord = { user:currentUser.username, userName:currentUser.fullName, date:todayISO, clockIn:nowTime, clockOut:'', totalHours:'' };
     updateClockUI();
-  }catch(e){
-    showToast('❌ Network error: '+e.message,'error');
-    btn.disabled=false;updateClockUI();
+    showToast('\u2705 Clocked in at ' + nowTime, 'success');
+    // Save to sheet in background
+    const params = { action:'clockIn', user:currentUser.username, userName:currentUser.fullName, clientDate:todayISO };
+    fetch(SCRIPT_URL+'?'+new URLSearchParams(params))
+      .then(r=>r.json())
+      .then(d=>{ if(d.rowNum) clockInRowNum=d.rowNum; })
+      .catch(()=>{});
+
+  } else {
+    if(!todayRecord || !todayRecord.clockIn){ showToast('Please clock in first!','error'); return; }
+    if(todayRecord.clockOut){ showToast('Already clocked out today!','error'); return; }
+    // Calculate hours
+    const [ih,im] = todayRecord.clockIn.split(':').map(Number);
+    const [oh,om] = nowTime.split(':').map(Number);
+    const diff = (oh*60+om) - (ih*60+im);
+    const total = diff>0 ? Math.floor(diff/60)+'h '+(diff%60)+'m' : '0h 0m';
+    // Update UI immediately
+    todayRecord = { ...todayRecord, clockOut:nowTime, totalHours:total };
+    updateClockUI();
+    showToast('\u2705 Clocked out at ' + nowTime + ' \u00b7 ' + total, 'success');
+    // Save to sheet in background
+    const params = { action:'clockOut', user:currentUser.username, userName:currentUser.fullName, clientDate:todayISO, clientTime:nowTime };
+    if(clockInRowNum) params.rowNum = String(clockInRowNum);
+    fetch(SCRIPT_URL+'?'+new URLSearchParams(params))
+      .catch(()=>{});
   }
 }
 
@@ -515,11 +518,11 @@ function renderLeaves(){
   const tbody=document.getElementById('leavesTable');
   if(!myLeaves.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🌿</div>No requests yet — use the Calendar to apply.</div></td></tr>`;return;}
   tbody.innerHTML=[...myLeaves].reverse().map(l=>`<tr>
-    <td><strong>${l.date}</strong></td>
+    <td><strong>${cleanDate(l.date)}</strong></td>
     <td>${l.type==='weekoff'?'🌿 Week-off':'🏖️ Leave'}</td>
     <td style="color:var(--muted);font-size:13px;">${l.reason||'—'}</td>
     <td><span class="badge badge-${l.status}">${dot(l.status)} ${cap(l.status)}</span></td>
-    <td style="color:var(--muted);font-size:13px;">${l.appliedOn}</td>
+    <td style="color:var(--muted);font-size:13px;">${cleanDate(l.appliedOn)}</td>
     <td>${l.status==='pending'?`<button class="cancel-btn" onclick="cancelLeave('${l.id}')">Cancel</button>`:'—'}</td>
   </tr>`).join('');
 }
@@ -536,8 +539,13 @@ function renderAttendance(){
 }
 
 function changeMonth(d){calDate=new Date(calDate.getFullYear(),calDate.getMonth()+d,1);renderCalendar();}
+function cleanDate(d){
+  if(!d)return '';
+  if(String(d).includes('T'))return String(d).slice(0,10);
+  return String(d).slice(0,10);
+}
 function renderCalendar(){
-  const lmap={};myLeaves.forEach(l=>lmap[l.date]=l);
+  const lmap={};myLeaves.forEach(l=>lmap[cleanDate(l.date)]=l);
   const today=new Date();today.setHours(0,0,0,0);
   const y=calDate.getFullYear(),m=calDate.getMonth();
   document.getElementById('calMonth').textContent=new Date(y,m,1).toLocaleString('default',{month:'long',year:'numeric'});
